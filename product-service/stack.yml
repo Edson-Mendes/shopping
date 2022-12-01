@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: product-ms-db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: product-service-db
+    volumes:
+      - ps-volume:/data/db
+
+volumes:
+  ps-volume:

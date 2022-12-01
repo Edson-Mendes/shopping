@@ -1,0 +1,11 @@
+# datasource
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/product-service-db
+#      uri: mongodb://root:example@localhost:27017/product-service-db
+#      host: localhost
+#      port: 27017
+#      database: product-service-db
+#      username: root
+#      password: example
