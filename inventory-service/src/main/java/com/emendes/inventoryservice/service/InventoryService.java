@@ -1,7 +1,11 @@
 package com.emendes.inventoryservice.service;
 
+import com.emendes.inventoryservice.dto.response.InventoryResponse;
+
+import java.util.List;
+
 public interface InventoryService {
 
-  boolean isInStock(String skuCode);
+  List<InventoryResponse> isInStock(List<String> skuCodes);
 
 }
