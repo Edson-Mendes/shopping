@@ -9,3 +9,12 @@ spring:
 #      database: product-service-db
 #      username: root
 #      password: example
+
+  application:
+    name: product-service
+
+# eureka
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka

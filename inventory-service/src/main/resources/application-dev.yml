@@ -6,6 +6,9 @@ spring:
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  application:
+    name: inventory-service
+
 # jpa
   jpa:
     hibernate:
@@ -23,5 +26,12 @@ logging:
         sql: DEBUG
         type: trace
 
+# eureka
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+# port
 server:
-  port: 8082
+  port: 8088
