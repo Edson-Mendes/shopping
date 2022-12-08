@@ -3,6 +3,7 @@ package com.emendes.orderservice.service.impl;
 import com.emendes.orderservice.dto.request.OrderLineItemsRequest;
 import com.emendes.orderservice.dto.request.OrderRequest;
 import com.emendes.orderservice.dto.response.InventoryResponse;
+import com.emendes.orderservice.event.OrderPlacedEvent;
 import com.emendes.orderservice.model.Order;
 import com.emendes.orderservice.model.OrderLineItems;
 import com.emendes.orderservice.repository.OrderRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
   private final OrderRepository orderRepository;
   private final WebClient.Builder webClientBuilder;
   private final Tracer tracer;
+  private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
   @Override
   public String placeOrder(OrderRequest orderRequest) {
@@ -42,9 +45,9 @@ public class OrderServiceImpl implements OrderService {
     List<String> skuCodes = order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
     log.info("Calling inventory service");
 
-    Span invetoryServiceLookup = tracer.nextSpan().name("InvetoryServiceLookup");
+    Span inventoryServiceLookup = tracer.nextSpan().name("InvetoryServiceLookup");
 
-    try (Tracer.SpanInScope spanInScope = tracer.withSpan(invetoryServiceLookup.start())) {
+    try (Tracer.SpanInScope spanInScope = tracer.withSpan(inventoryServiceLookup.start())) {
       InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get().uri("http://inventory-service/api/inventory",
               uriBuilder ->  uriBuilder.queryParam("sku-code", skuCodes).build())
           .retrieve().bodyToMono(InventoryResponse[].class).block();
@@ -54,13 +57,14 @@ public class OrderServiceImpl implements OrderService {
 
       if (isInStock) {
         orderRepository.save(order);
+        kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
         log.info("order {} placed successfully", order.getOrderNumber());
         return "Order placed successfully";
       } else {
         throw new IllegalArgumentException("Some product is not in stock, please try again later");
       }
     } finally {
-      invetoryServiceLookup.end();
+      inventoryServiceLookup.end();
     }
 //    Call inventory service, and place order if all products in stock
 

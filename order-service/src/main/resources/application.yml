@@ -1,3 +1,96 @@
+# datasource
 spring:
-  profiles:
-    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/order-db?createDatabaseIfNotExist=true
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  application:
+    name: order-service
+
+# jpa
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+
+  zipkin:
+    base-url: http://localhost:9411/
+  sleuth:
+    sampler:
+      probability: 1
+
+  # Kafka properties
+  kafka:
+    bootstrap:
+      bootstrap-servers: localhost:9092
+    template:
+      default-topic: notificationTopic
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: event:com.emendes.orderservice.event.OrderPlacedEvent
+
+# log
+logging:
+  level:
+    org:
+      hibernate:
+        sql: DEBUG
+        type: trace
+
+# eureka
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka:password@localhost:8761/eureka
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Resilience4j properties
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory:
+        registerHealthIndicator: true
+        event-consumer-buffer-size: 10
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+# Resilience4j timeout properties
+  timelimiter:
+    instances:
+      inventory:
+        timeout-duration: 3s
+
+#Resilience4J Retry Properties
+  retry:
+    instances:
+      inventory:
+        max-attempts: 3
+        wait-duration: 5s
+
+server:
+  port: 8081
