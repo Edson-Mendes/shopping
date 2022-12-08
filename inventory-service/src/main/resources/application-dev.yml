@@ -41,3 +41,10 @@ eureka:
 # port
 server:
   port: 8088
+
+# Actuator Prometheus endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

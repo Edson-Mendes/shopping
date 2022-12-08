@@ -43,7 +43,6 @@ spring:
           issuer-uri: http://localhost:8181/realms/spring-boot-microservices-realm
 
 
-
   zipkin:
     base-url: http://localhost:9411/
   sleuth:
@@ -60,4 +59,9 @@ logging:
 #            route:
 #              RouteDefinitionRouteLocator: INFO
 
-
+# Actuator Prometheus endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
